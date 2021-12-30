@@ -1,5 +1,9 @@
 <?php
 
+// PDO 公式
+// https://www.php.net/manual/ja/class.pdo.php
+//
+
 function test01() {
     try {
         $addr = 'mysql:host=localhost; dbname=testdb; port=1306; ';
