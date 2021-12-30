@@ -14,10 +14,8 @@
 function h($str) {
     //XSS対策
 
-    // ex)
-    // <p><?php echo h($str); ?></p>
-    //
+/* ex)
+    <p><?php echo h($str); ?></p>
+*/
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }
-
-?>
