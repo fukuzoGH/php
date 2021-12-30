@@ -4,6 +4,10 @@
 // https://www.php.net/manual/ja/class.pdo.php
 //
 
+// 目的     : 
+//
+// 動作確認 : 2021-12-30
+// 動作環境 : php 7.4
 function test01() {
     try {
         $addr = 'mysql:host=localhost; dbname=testdb; port=1306; ';
