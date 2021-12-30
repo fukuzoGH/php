@@ -11,8 +11,7 @@
 //
 //
 
-function h($str)
-{
+function h($str) {
     //XSS対策
 
     // ex)
@@ -20,3 +19,5 @@ function h($str)
     //
     return htmlspecialchars($str, ENT_QUOTES, 'UTF-8');
 }
+
+?>
