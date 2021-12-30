@@ -4,7 +4,7 @@
 // https://www.php.net/manual/ja/class.pdo.php
 //
 
-// 目的     : 
+// 目的     : データベースに接続する
 //
 // 動作確認 : 2021-12-30
 // 動作環境 : php 7.4
@@ -25,5 +25,5 @@ function test01() {
         $pdo = NULL;    // 切断
 }
 
-//データベースに接続する
+
 test01();
