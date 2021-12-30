@@ -14,9 +14,7 @@ function test01() {
         $user = 'root';
         $pass = 'password';
 
-        // 接続
         $pdo = new PDO($addr, $user, $pass);
-        
         $state = $pdo->query('SET NAMES utf-8');
     }
     catch(PDOException $e){
