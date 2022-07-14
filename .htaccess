@@ -1,0 +1,5 @@
+#PHPのファイルアップロードサイズの上限値(phpinfo関数で確認出来る)
+###php_value upload_max_filesize "8M"
+php_value upload_max_filesize "1G"
+###php_value post_max_size "10M"
+php_value post_max_size "1G"
