@@ -1,5 +1,5 @@
 <?php
-
+// <!--(systemname)exploreRun -->
 
 //
 // https://qiita.com/fallout/items/3682e529d189693109eb

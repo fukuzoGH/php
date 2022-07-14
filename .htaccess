@@ -1,3 +1,4 @@
+# <!--(systemname)exploreRun -->
 #PHPのファイルアップロードサイズの上限値(phpinfo関数で確認出来る)
 ###php_value upload_max_filesize "8M"
 php_value upload_max_filesize "1G"

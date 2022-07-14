@@ -1,4 +1,6 @@
 <?php
+// <!--(systemname)exploreRun -->
+
 //
 // (目的)
 //   自パスを開く __DIR__;
