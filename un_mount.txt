@@ -1,0 +1,84 @@
+""" 
+
+$ pip install pysmb
+
+
+
+"""
+
+
+import os
+from smb.SMBConnection import SMBConnection
+from smb.smb_structs import OperationFailure
+
+def mount_smb_share(server_ip, share_name, mount_point, username, password):
+    conn = None
+    try:
+        # SMB接続を確立
+        conn = SMBConnection(username, password, "client", server_ip, use_ntlm_v2=True)
+        
+        if not conn.connect(server_ip, 445):
+            raise ConnectionError("SMBサーバーに接続できませんでした。")
+
+        # マウントポイントが存在しない場合は作成
+        os.makedirs(mount_point, exist_ok=True)
+
+        # 共有内のファイルとフォルダをリスト
+        file_list = conn.listPath(share_name, "/")
+        
+        # マウントポイントにファイルとフォルダをコピー
+        for item in file_list:
+            if item.filename not in ['.', '..']:
+                remote_path = f"/{item.filename}"
+                local_path = os.path.join(mount_point, item.filename)
+                if item.isDirectory:
+                    if not os.path.exists(local_path):
+                        os.makedirs(local_path)
+                    # サブディレクトリの内容も再帰的にコピー
+                    copy_directory(conn, share_name, remote_path, local_path)
+                else:
+                    copy_file(conn, share_name, remote_path, local_path)
+
+        print(f"SMB共有 {server_ip}/{share_name} を {mount_point} にマウントしました。")
+    except OperationFailure as e:
+        print(f"SMB操作エラー: {str(e)}")
+    except ConnectionError as e:
+        print(f"接続エラー: {str(e)}")
+    except Exception as e:
+        print(f"予期せぬエラー: {type(e).__name__}: {str(e)}")
+    finally:
+        if conn:
+            conn.close()
+
+def copy_file(conn, share_name, remote_path, local_path):
+    try:
+        with open(local_path, 'wb') as file:
+            conn.retrieveFile(share_name, remote_path, file)
+        print(f"ファイルをコピーしました: {local_path}")
+    except Exception as e:
+        print(f"ファイルのコピーに失敗しました {remote_path}: {str(e)}")
+
+def copy_directory(conn, share_name, remote_path, local_path):
+    try:
+        file_list = conn.listPath(share_name, remote_path)
+        for item in file_list:
+            if item.filename not in ['.', '..']:
+                item_remote_path = f"{remote_path}/{item.filename}"
+                item_local_path = os.path.join(local_path, item.filename)
+                if item.isDirectory:
+                    if not os.path.exists(item_local_path):
+                        os.makedirs(item_local_path)
+                    copy_directory(conn, share_name, item_remote_path, item_local_path)
+                else:
+                    copy_file(conn, share_name, item_remote_path, item_local_path)
+    except Exception as e:
+        print(f"ディレクトリのコピーに失敗しました {remote_path}: {str(e)}")
+
+# 使用例
+server_ip = "192.168.1.0"
+share_name = "Share"
+mount_point = r"c:\mmt"
+username = "test"
+password = ""
+
+mount_smb_share(server_ip, share_name, mount_point, username, password)
