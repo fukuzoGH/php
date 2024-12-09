@@ -1,0 +1,33 @@
+import configparser
+import os
+
+def read(section:str,key:str,file_name:str)->str:
+    """
+    """  
+    ret_str = ''
+    current_dir = os.path.dirname(os.path.abspath(__file__))    # 現在のスクリプトのディレクトリを取得
+    file_path = os.path.join(current_dir, file_name)             # ファイルのパスを作成
+    
+    if os.path.isfile(file_path):                               # ファイルが存在するか確認
+        ini = configparser.ConfigParser()                       # ConfigParserオブジェクトを作成
+        ini.read(file_name)                                     # INIファイルを読み込む
+        try:
+            if ini[section][key]==None:
+                return ret_str
+            else:
+                ret_str = ini[section][key]
+        except Exception as e:
+            #予期しないエラー
+            #print(f"予期しないエラーが発生しました: {e}")
+            ret_str = ''
+        return ret_str
+    else:
+        return ret_str
+    
+def test_print()->None:
+    message='Hello. World. '
+    print(f"{ message }")
+
+def ver()->str:
+    """ バージョン """
+    return '0.0.1'
