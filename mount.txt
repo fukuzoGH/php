@@ -1,0 +1,85 @@
+"""
+
+$ pip install pysmb
+
+Windowsで動作し、アンマウント時に接続先とファイルを同期してからアンマウントする
+ドライブレターを使用せず、UNCパスを直接使用する
+"""
+
+import os
+import subprocess
+import shutil
+
+def sync_and_unmount_smb_share(server_ip, share_name, mount_point, username, password):
+    try:
+        # UNCパスを作成
+        unc_path = f"\\\\{server_ip}\\{share_name}"
+
+        # マウントポイントが存在するか確認
+        if not os.path.exists(mount_point):
+            os.makedirs(mount_point)
+            print(f"マウントポイント {mount_point} を作成しました。")
+
+        # SMB共有に接続
+        connect_cmd = f'net use {unc_path} /user:{username} "{password}"'
+        result = subprocess.run(connect_cmd, shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        print(f"SMB共有接続結果: {result.stdout}")
+
+        # ファイルとフォルダを手動で同期
+        for item in os.listdir(mount_point):
+            src_path = os.path.join(mount_point, item)
+            dst_path = os.path.join(unc_path, item)
+
+            if os.path.isfile(src_path):
+                shutil.copy2(src_path, dst_path)  # ファイルをコピー
+                print(f"ファイル {src_path} を {dst_path} にコピーしました。")
+            elif os.path.isdir(src_path):
+                if not os.path.exists(dst_path):  # フォルダが存在しない場合にのみコピー
+                    shutil.copytree(src_path, dst_path)  # フォルダをコピー
+                    print(f"フォルダ {src_path} を {dst_path} にコピーしました。")
+                else:
+                    # 既存のフォルダに対しては、内容を更新する処理を追加
+                    for sub_item in os.listdir(src_path):
+                        sub_src_path = os.path.join(src_path, sub_item)
+                        sub_dst_path = os.path.join(dst_path, sub_item)
+                        if os.path.isfile(sub_src_path):
+                            shutil.copy2(sub_src_path, sub_dst_path)  # 更新されたファイルをコピー
+                            print(f"更新されたファイル {sub_src_path} を {sub_dst_path} にコピーしました。")
+                        elif os.path.isdir(sub_src_path):
+                            shutil.copytree(sub_src_path, sub_dst_path, dirs_exist_ok=True)  # フォルダ内容を更新
+
+        # リモート先のフォルダ内の不要なファイルとフォルダを削除
+        for item in os.listdir(unc_path):
+            remote_item = os.path.join(unc_path, item)
+            if not os.path.exists(os.path.join(mount_point, item)):
+                if os.path.isfile(remote_item):
+                    os.remove(remote_item)
+                    print(f"リモートファイル {remote_item} を削除しました。")
+                elif os.path.isdir(remote_item):
+                    shutil.rmtree(remote_item)  # フォルダを削除
+                    print(f"リモートフォルダ {remote_item} を削除しました。")
+
+        # SMB共有の接続を解除
+        disconnect_cmd = f'net use {unc_path} /delete /y'
+        result = subprocess.run(disconnect_cmd, shell=True, check=False, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
+        print(f"SMB共有接続解除結果: {result.stdout}")
+
+        # アンマウント後にディレクトリを削除
+        if os.path.exists(mount_point):
+            shutil.rmtree(mount_point)  # ディレクトリとその内容を削除
+            print(f"{mount_point} を削除しました。")
+
+    except subprocess.CalledProcessError as e:
+        print(f"コマンド実行エラー: {e.cmd}")
+        print(f"エラー詳細: {e.stderr}")
+    except Exception as e:
+        print(f"エラー: {str(e)}")
+
+# 使用例
+server_ip = "192.168.2.0"
+share_name = "Share"
+mount_point = r"c:\mmt"
+username = "test"
+password = ""
+
+sync_and_unmount_smb_share(server_ip, share_name, mount_point, username, password)
